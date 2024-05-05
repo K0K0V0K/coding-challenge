@@ -1,11 +1,21 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Inject } from '@nestjs/common';
+import { ClientProxy, EventPattern } from '@nestjs/microservices';
 import { WorkerService } from './worker.service';
 
 @Controller()
 export class WorkerController {
-  constructor(private readonly workerService: WorkerService) {}
+  constructor(
+    @Inject('DATA_STREAMS') private client: ClientProxy,
+    private readonly workerService: WorkerService
+  ) {}
 
-  getHello(): string {
-    return this.workerService.getHello();
+  
+  @EventPattern('transfer_temperature')
+  transferTemperature() {
+    console.log("receive | transfer_temperature")
+    this.workerService.getTemperature().then(temperature => {
+      console.log("send | store_temperature: " + JSON.stringify(temperature))
+      this.client.emit('store_temperature', new Object())
+    })
   }
 }

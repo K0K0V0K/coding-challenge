@@ -1,55 +1,60 @@
-# Welcome to Welds coding-challenge
+# Example NestJS microservice project
 
-## Introduction
-Here at Weld we use [NestJS](https://nestjs.com/) for our applications. So this project also reflects that. On our front-end we use NextJS and GraphQL. For simplicity we have used the monorepo structure from NestJS.
+!!! WARNING: Currently not working, see the known issues section.
 
-Fork this repository and create your own repository to get started.
+## Description
+This is an example project how to write microservices with NestJS. 
+The program use the [Open meteo](https://open-meteo.com/) API to poll the current weather of a hungarian village called Lovas, and store it in memory.
+The program contains two microservice. The data-streams provide an /start http rest endpoint to start a request to the Open meteo for the current weather info, and also provide a /list endpoint where the previously asked whether information can be viewed. The other microservice called worker, that is used by the data-streams to fetch the weather information.
 
-## Challenge
-One of our customers wants us to help them build a pipeline for an API (select whichever you want from [Public APIs](https://github.com/public-apis/public-apis)). And they want us to setup a new data-pipeline for them to get information out and into their current data-warehouse.
+## DEMO
 
-To accomplish this you will build two services:
-- **Data-streams**: Our API that can receive calls and issue commands to **worker**. This service also stores any information that our customer wants to fetch.
-- **Worker:** Fetches the data from external API. Makes any transformations you see fit. And sends it back to **data-streams** for storage.
+Here you can see a demo how to use the tool:
+https://drive.google.com/file/d/1rDEnCS4oeyYWXEGoOWJZScnPPRV3BMTx/view?usp=drive_link
 
-### Steps in challenge
-- Configure a message protocol between the two services. You can get inspiration from the [nestjs docs.](https://docs.nestjs.com/microservices/basics) Choose which ever you want but tell us why in your answer.
-- Create an endpoint on **data-streams** that tells **worker** to start fetching data on an interval (every 5 minutes).
-- Setup an [http module](https://docs.nestjs.com/techniques/http-module) that **worker** can use to communicate with the external API.
-- Send the data and store the results on **data-streams** using internal communication protocol.
-- Make an endpoint on **data-streams** that can fetch the data stored on **data-streams**. Use whatever storage you see fit but tell us why you chose it.
-- Make an endpoint on **data-streams** that can stop the data fetching on **worker**.
+## How to install
 
-## How we evaluate
-The test is solely for you to show techniques and design patterns you normally use. Once the techniques and design patterns have been demonstrated then that is enough. No neeed for additional boilerplate. Just include a future work section in your answer and we will include questions in the technical interview.
+- Install the latest nodejs: https://nodejs.org/en/learn/getting-started/how-to-install-nodejs
+- Install yarn package manager: https://classic.yarnpkg.com/lang/en/docs/install/ 
+- Run the yarn install command: https://classic.yarnpkg.com/en/docs/cli/install
 
-- We understand that this can be **time consuming**. If you are short on time - then leave something out. But be sure to tell us your approach to the problem in the documentation.
-- A documented answer that explains your approach, short-comings, how-to-run and future work.
-- A working solution. Preferably with some tests to give us an idea of how you write tests (you don't need to put it all under test).
-- Reliability is very important when dealing with data-pipelines. So any measures you can add to keep the data-flowing will be appreciated.
-- We appreciate small commits with a trail of messages that shows us how you work.
+## How to use
 
-## Project structure
-```
-├── README.md
-├── apps
-│   ├── data-streams
-│   └── worker
-├── package.json
-```
-### data-streams:
-This is our API. We will be able to issue HTTP requests to this and have it talk to our microservice **worker**.
-We also store any information that **worker** sends our way. This project has been setup as a hybrid app. It can both function as an API but also as a microservice with an internal communication layer.
-
-You can start data-streams with:
+Start the data-streams with the following command. It will listen on the 5000 TCP port
 ```
 yarn start
 ```
-
-### worker:
-This is the worker microservice that is in charge of talking to the external API. It will fetch data when issued a command from **data-streams** and then return the results. This project only functions as a microservice which means it can only receive commands from the internal communication layer.
-
-You can start worker with:
+Start the data-streams with the following command. It will listen on the 5001 TCP port
 ```
 yarn start worker
 ```
+Now you can use the http://localhost:5000/start to start a weather information fetch.
+In the workers log, you can see the fetched data.
+Unfortunatelly, currently the /list endpoint not working, cause the worker -> data-streams communication is broken.
+
+## Known issues
+
+- When worker triggers the store_temperature event, then the data-streams not getting triggered.
+- Maybe the yarn install will fail with the following issue, then try to remove the yarn.lock file. https://github.com/yarnpkg/yarn/issues/8994
+
+## Possible future development
+
+- Add tests
+- Add docker-compose support
+- Replace in memory weather info store in data-streams with an external storage service
+- Add scheduling feature to ask whether info in periods
+- Add exception handling
+- Add improved logging
+- Separate data-streams into to microservice, so the users and the worker service wont use the same TCP port
+
+## Licence
+
+Open meteo non-commercial licence mentions the following:
+
+By using the Free API for non-commercial use you agree to following terms:
+- Less than 10'000 API calls per day, 5'000 per hour and 600 per minute.
+- You may only use the free API services for non-commercial purposes.
+- You accept to the CC-BY 4.0 license, as specified in the license conditions.
+- We reserve the right to block applications and IP addresses that misuse our service without prior notice.
+
+https://open-meteo.com/en/terms
